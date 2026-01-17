@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dead & Injured</title>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    background-color: #00051e;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+.upper-section {
+    flex: 3;
+    background-color: #0a0d2a;
+    padding: 15px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.lower-section {
+    flex: 1;
+    background-color: #00051e;
+    padding: 15px;
+    position: relative;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px;
+    border-bottom: 1px solid #3a3b5f;
+}
+
+.guess-display {
+    background-color: #1e1d3f;
+    font-size: 1.5rem;
+    text-align: center;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    letter-spacing: 5px;
+}
+
+.keypad {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.keypad button {
+    background-color: #0a0d2a;
+    color: white;
+    border: 1px solid #3a3b5f;
+    border-radius: 6px;
+    padding: 12px 0;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.clear-btn { background-color: #5a0000; }
+.enter-btn {
+    background-color: #005a00;
+    grid-column: span 2;
+}
+.main-menu-btn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            padding: 8px 15px;
+            background-color: #3a3b5f;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+.timer {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    color: #ff4444;
+    font-weight: bold;
+}
+
+.game-over {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    font-size: 2rem;
+}
+</style>
+</head>
+
+<body>
+
+<div class="upper-section">
+    <div class="timer" id="timer">Time: 60s</div>
+
+    <table id="guess-history">
+        <thead>
+            <tr>
+                <th>Your Guess</th>
+                <th>Result</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div id="game-over" class="game-over">
+        <h2 id="end-title">GAME OVER</h2>
+        <p id="end-message"></p>
+        <button onclick="resetGame()">Play Again</button>
+    </div>
+</div>
+
+<div class="lower-section">
+    <div class="guess-display" id="guess-display"></div>
+
+    <div class="keypad">
+        <button onclick="addDigit(1)">1</button>
+        <button onclick="addDigit(2)">2</button>
+        <button onclick="addDigit(3)">3</button>
+        <button onclick="addDigit(4)">4</button>
+        <button onclick="addDigit(5)">5</button>
+        <button onclick="addDigit(6)">6</button>
+        <button onclick="addDigit(7)">7</button>
+        <button onclick="addDigit(8)">8</button>
+        <button onclick="addDigit(9)">9</button>
+        <button onclick="addDigit(0)">0</button>
+
+        <button class="clear-btn" onclick="clearGuess()">Clear</button>
+        <button class="enter-btn" onclick="submitGuess()">Enter</button>
+    </div>
+    <button class="main-menu-btn" onclick="window.location.href='index.html'">Main Menu</button>
+</div>
+
+<script>
+let secretNumber = "";
+let currentGuess = "";
+let guessHistory = [];
+let timeLeft = 60;
+let timerInterval;
+
+/* ===== GAME PHYSICS =====
+1 digit from 0–3
+1 digit from 4–7
+1 digit from 8–9
++1 digit from any range
+no duplicates
+shuffled
+========================= */
+
+function generateSecretNumber() {
+    const ranges = [
+        [0,1,2,3],
+        [4,5,6,7],
+        [8,9]
+    ];
+
+    let result = [];
+    let used = new Set();
+
+    for (let r of ranges) {
+        let d = r[Math.floor(Math.random() * r.length)];
+        result.push(d);
+        used.add(d);
+    }
+
+    while (result.length < 4) {
+        let r = ranges[Math.floor(Math.random() * ranges.length)];
+        let d = r[Math.floor(Math.random() * r.length)];
+        if (!used.has(d)) {
+            result.push(d);
+            used.add(d);
+        }
+    }
+
+    for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+    }
+
+    return result.join("");
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `Time: ${timeLeft}s`;
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            endGame(false, "Time ran out");
+        }
+    }, 1000);
+}
+
+function resetGame() {
+    secretNumber = generateSecretNumber();
+    currentGuess = "";
+    guessHistory = [];
+    timeLeft = 60;
+
+    document.querySelector("#guess-history tbody").innerHTML = "";
+    document.getElementById("guess-display").textContent = "";
+    document.getElementById("game-over").style.display = "none";
+    document.getElementById("timer").textContent = "Time: 60s";
+
+    startTimer();
+    console.log("Secret:", secretNumber);
+}
+
+function addDigit(d) {
+    if (currentGuess.length < 4 && timeLeft > 0) {
+        currentGuess += d;
+        document.getElementById("guess-display").textContent = currentGuess;
+    }
+}
+
+function clearGuess() {
+    currentGuess = "";
+    document.getElementById("guess-display").textContent = "";
+}
+
+function calculateResult(guess) {
+    let dead = 0, injured = 0;
+    let s = secretNumber.split("");
+    let g = guess.split("");
+
+    for (let i = 0; i < 4; i++) {
+        if (g[i] === s[i]) {
+            dead++;
+            g[i] = s[i] = "X";
+        }
+    }
+
+    for (let i = 0; i < 4; i++) {
+        if (g[i] !== "X") {
+            let idx = s.indexOf(g[i]);
+            if (idx !== -1) {
+                injured++;
+                s[idx] = "X";
+            }
+        }
+    }
+
+    return { dead, injured };
+}
+
+function submitGuess() {
+    if (currentGuess.length !== 4 || timeLeft <= 0) return;
+
+    let r = calculateResult(currentGuess);
+    guessHistory.push({ guess: currentGuess, result: `${r.dead}D ${r.injured}I` });
+
+    updateTable();
+
+    if (r.dead === 4) {
+        clearInterval(timerInterval);
+        endGame(true, "Code cracked");
+    }
+
+    clearGuess();
+}
+
+function updateTable() {
+    let tbody = document.querySelector("#guess-history tbody");
+    tbody.innerHTML = "";
+    guessHistory.forEach(h => {
+        let row = tbody.insertRow();
+        row.insertCell(0).textContent = h.guess;
+        row.insertCell(1).textContent = h.result;
+    });
+}
+
+function endGame(win, reason) {
+    document.getElementById("end-title").textContent = win ? "YOU WIN" : "GAME OVER";
+    document.getElementById("end-message").textContent =
+        `${reason}. Code: ${secretNumber}`;
+    document.getElementById("game-over").style.display = "flex";
+}
+
+resetGame();
+</script>
+
+</body>
+</html>
