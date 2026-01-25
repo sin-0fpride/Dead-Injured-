@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Play</title>
+    <style>
+        /* Full-page hacker background */
+        body {
+            margin: 0;
+            background: black;
+            color: #00ff99;
+            font-family: monospace;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Matrix numbers behind everything */
+        #matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            font-family: monospace;
+            font-size: 14px;
+            color: rgba(0, 255, 153, 0.08);
+            white-space: pre;
+            pointer-events: none;
+            overflow: hidden;
+            animation: scroll 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+
+        /* Container for content */
+        .about-container {
+            position: relative;
+            z-index: 1;
+            width: 90%;
+            max-width: 800px;
+            margin: 50px auto;
+            text-align: left;
+        }
+
+        /* Headings */
+        h1, h2 {
+            color: #00ff99;
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        /* Text */
+        p, ul {
+            color: #00ff99;
+            line-height: 1.5;
+        }
+
+        ul li {
+            margin-bottom: 8px;
+        }
+
+        /* Dead & Injured spans */
+        .dead {
+            color: #009966;
+            font-weight: bold;
+        }
+
+        .injured {
+            color: #009966;
+            font-weight: bold;
+        }
+
+        /* Example box */
+        .example {
+            background: rgba(0, 255, 153, 0.05);
+            padding: 10px;
+            border: 1px solid #009966;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        /* Back to home button */
+        .back-home {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 30px;
+            border: 1px solid #00ff99;
+            text-decoration: none;
+            color: #00ff99;
+            transition: background 0.2s;
+        }
+
+        .back-home:hover {
+            background: rgba(0, 255, 153, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Matrix background -->
+    <div id="matrix-bg"></div>
+
+    <div class="about-container">
+        <h1>How to Play</h1>
+
+        <h2>Objective</h2>
+        <p>Guess a 4-digit number within the fewest attempts.</p>
+
+        <h2>Rules</h2>
+        <ul>
+            <li>If a digit is correct and in the right position → <span class="dead">Dead (D)</span></li>
+            <li>If a digit is correct but in the wrong position → <span class="injured">Injured (I)</span></li>
+            <li>Keep guessing until you get "4D 0I" to win!</li>
+        </ul>
+
+        <h2>Example</h2>
+        <p class="example">
+            Secret number: <span style="color: green;">1589</span><br>
+            Your guess: <span style="color: green;">1245</span><br>
+            Result: <span class="dead">1D</span> <span class="injured">1I</span> (1 is Dead, 5 is Injured)
+        </p>
+
+        <p>Keep guessing wisely!</p>
+
+        <a href="index.html" class="back-home">Back to Home</a>
+    </div>
+
+    <script>
+        // Full-page matrix numbers
+        const matrixDiv = document.getElementById('matrix-bg');
+
+        function generateMatrix() {
+            const cols = Math.floor(window.innerWidth / 10);
+            const rows = Math.floor(window.innerHeight / 14) * 2;
+            let text = "";
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    text += Math.floor(Math.random() * 10);
+                }
+                text += "\n";
+            }
+            matrixDiv.textContent = text;
+        }
+
+        generateMatrix();
+        window.addEventListener('resize', generateMatrix);
+    </script>
+</body>
+</html>

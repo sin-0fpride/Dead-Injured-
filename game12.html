@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dead & Injured — Level 12</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+body {
+  margin:0;
+  background:black;
+  color:#00ff99;
+  font-family:monospace;
+  overflow-x:hidden;
+}
+.container {
+  position:relative;
+  z-index:1;
+  padding:20px;
+  max-width:800px;
+  margin:50px auto;
+  text-align:left;
+  border:1px solid #00ff99;
+  background:rgba(0,0,0,0.7);
+  border-radius:8px;
+  min-height:300px;
+}
+.typing-line {
+  font-family:monospace;
+  font-size:22px;
+  line-height:1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  position:relative;
+}
+.cursor {
+  display:inline-block;
+  width:10px;
+  background:#00ff99;
+  animation:blink 0.7s steps(1) infinite;
+}
+@keyframes blink { 50% { background:transparent; } }
+.random-char {
+  color:rgba(0,255,153,0.2);
+  position:absolute;
+  top:0; left:0;
+  pointer-events:none;
+}
+input[type="text"] {
+  font-family:monospace;
+  font-size:18px;
+  padding:8px;
+  width:120px;
+  text-align:center;
+  border:1px solid #00ff99;
+  background:black;
+  color:#00ff99;
+  margin-top:10px;
+}
+button {
+  font-family:monospace;
+  padding:8px 20px;
+  margin-left:10px;
+  border:1px solid #00ff99;
+  background:black;
+  color:#00ff99;
+  cursor:pointer;
+}
+button:hover { background:rgba(0,255,153,0.1);}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>LEVEL 12 — Tommy’s Challenge</h1>
+  <div id="challenge"></div>
+  <div id="game"></div>
+</div>
+
+<script>
+// --- Mystery message ---
+const message = "Hello player, you finally made it to playing the real me. Do not get too comfortable... the mysteries ahead are darker than you think.";
+const container = document.getElementById("challenge");
+
+function randomChar() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  return chars[Math.floor(Math.random()*chars.length)];
+}
+
+function typeMysteryMessage(text, callback) {
+  const lineDiv = document.createElement("div");
+  lineDiv.className = "typing-line";
+  container.appendChild(lineDiv);
+
+  const cursor = document.createElement("span");
+  cursor.className = "cursor";
+  lineDiv.appendChild(cursor);
+
+  let i = 0;
+
+  function typeNext() {
+    if(i >= text.length){
+      cursor.remove();
+      if(callback) callback();
+      return;
+    }
+
+    const span = document.createElement("span");
+    span.textContent = "";
+    lineDiv.insertBefore(span, cursor);
+
+    let flickerCount = 0;
+    const flicker = setInterval(() => {
+      span.textContent = randomChar();
+      flickerCount++;
+      if(flickerCount >= 5){
+        clearInterval(flicker);
+        span.textContent = text[i];
+        i++;
+        setTimeout(typeNext, 80);
+      }
+    }, 50);
+  }
+
+  typeNext();
+}
+
+// --- Game against Tommy ---
+function startGame() {
+  const gameDiv = document.getElementById("game");
+  const playerNumber = Array.from({length:4},()=>Math.floor(Math.random()*10)).join("");
+  const aiNumber = Array.from({length:4},()=>Math.floor(Math.random()*10)).join("");
+  const maxTrials = 4;
+  let trial = 0;
+
+  // Styled input
+  const input = document.createElement("input");
+  input.type = "text";
+  input.maxLength = 4;
+  input.placeholder = "Enter 4-digit number";
+
+  const submitBtn = document.createElement("button");
+  submitBtn.textContent = "Submit Guess";
+
+  gameDiv.appendChild(input);
+  gameDiv.appendChild(submitBtn);
+
+  function calculateDI(guess, number){
+    let dead=0, injured=0;
+    for(let i=0;i<4;i++){
+      if(guess[i]===number[i]) dead++;
+      else if(number.includes(guess[i])) injured++;
+    }
+    return {dead,injured};
+  }
+
+  submitBtn.onclick = () => {
+    const guess = input.value;
+    if(!/^\d{4}$/.test(guess)) return alert("Enter 4 digits!");
+
+    trial++;
+    const playerDI = calculateDI(guess, playerNumber);
+    const aiDI = {dead: trial===maxTrials?4:0, injured:0}; // Tommy wins at 4th trial
+
+    const resultLine = document.createElement("div");
+    resultLine.className = "typing-line";
+    resultLine.innerHTML = `Trial ${trial}: You → ${guess} → <span class="dead">${playerDI.dead}D</span> <span class="injured">${playerDI.injured}I</span><br>Tommy → ${aiNumber} → <span class="dead">${aiDI.dead}D</span> <span class="injured">${aiDI.injured}I</span>`;
+    gameDiv.appendChild(resultLine);
+
+    input.value = "";
+    input.focus();
+
+    if(trial>=maxTrials){
+      const finalMsg = document.createElement("div");
+      finalMsg.className="typing-line";
+      finalMsg.style.marginTop="20px";
+      finalMsg.innerHTML = `<strong>You Lose. Tommy dominates.</strong><br><br>
+      Brace yourself... Chapter 2 is coming. The grand stage awaits millions of players, mysteries deeper than ever. Are you ready for the chaos?`;
+      gameDiv.appendChild(finalMsg);
+      submitBtn.disabled = true;
+      input.disabled = true;
+
+      let unlockedLevel = parseInt(localStorage.getItem('unlockedLevel')) || 12;
+      if(unlockedLevel < 13) localStorage.setItem('unlockedLevel',13);
+    }
+  }
+}
+
+// Start mystery message, then game
+typeMysteryMessage(message, startGame);
+</script>
+
+</body>
+</html>

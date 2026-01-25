@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Dead & Injured — Story Mode</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+  body {
+    margin: 0;
+    background: black;
+    color: #00ff99;
+    font-family: monospace;
+    overflow-x: hidden;
+  }
+
+  /* Hacker background */
+  .bg {
+    position: fixed;
+    inset: 0;
+    font-size: 14px;
+    color: rgba(0, 255, 153, 0.08);
+    pointer-events: none;
+    white-space: pre;
+    animation: scroll 20s linear infinite;
+  }
+
+  @keyframes scroll {
+    from { transform: translateY(0); }
+    to { transform: translateY(-50%); }
+  }
+
+  .container {
+    position: relative;
+    padding: 20px;
+    z-index: 1;
+  }
+
+  h1 {
+    text-align: center;
+    letter-spacing: 3px;
+    margin-bottom: 30px;
+  }
+
+  .level {
+    border: 1px solid #00ff99;
+    padding: 15px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .level:hover {
+    background: rgba(0, 255, 153, 0.1);
+  }
+
+  .level-title {
+    font-size: 18px;
+  }
+
+  .enemy {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-top: 5px;
+  }
+
+  .locked {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg" id="matrix"></div>
+
+<div class="container">
+  <h1>STORY MODE</h1>
+  <div id="levels"></div>
+</div>
+
+<script>
+/* Matrix background */
+const bg = document.getElementById("matrix");
+let text = "";
+for (let i = 0; i < 2000; i++) {
+  text += Math.floor(Math.random() * 10);
+  if (i % 80 === 0) text += "\n";
+}
+bg.textContent = text;
+
+/* Level names */
+const levels = [
+  "One digit",
+  "two digits",
+  "three digits",
+  "three digits 5 trials",
+  "four digits",
+  "four digits 7 trials",
+  "four digits timed",
+  "four digit vs Tommy beginner",
+  "Special quest",
+  "four digits timed",
+  "four digits vs Tommy medium",
+  "unreal"
+];
+
+/* Load unlocked level from storage */
+let unlockedLevel = parseInt(localStorage.getItem('unlockedLevel')) || 1;
+
+const levelsDiv = document.getElementById("levels");
+
+levels.forEach((name, i) => {
+  const levelNum = i + 1;
+  const div = document.createElement("div");
+  div.className = "level";
+  if (levelNum > unlockedLevel) div.classList.add("locked");
+  div.innerHTML = `<div class="level-title">LEVEL ${levelNum}</div><div class="enemy">${name}</div>`;
+
+  // Single onclick for all levels
+  div.onclick = () => {
+    if(levelNum > unlockedLevel){
+      alert("This level is locked.");
+      return;
+    }
+
+    switch(levelNum){
+      case 1: window.location.href = "game.html"; break;
+      case 2: window.location.href = "game2.html"; break;
+      case 3: window.location.href = "game3.html"; break;
+      case 4: window.location.href = "game4.html"; break;
+      case 5: window.location.href = "game5.html"; break;
+      case 6: window.location.href = "game6.html"; break;
+      case 7: window.location.href = "game7.html"; break;
+      case 8: window.location.href = "game8.html"; break;
+      case 9: window.location.href = "game9.html"; break;
+      case 10: window.location.href = "game10.html"; break;
+      case 11: window.location.href = "game11.html"; break;
+      case 12: window.location.href = "game12.html"; break;
+      default: alert("Level page not set"); break;
+    }
+  };
+
+  levelsDiv.appendChild(div);
+});
+</script>
+
+</body>
+</html>

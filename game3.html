@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dead & Injured — Level 3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+body{margin:0;background:black;color:#00ff99;font-family:monospace;overflow-x:hidden;}
+.bg{position:fixed;inset:0;font-size:14px;color:rgba(0,255,153,0.08);pointer-events:none;white-space:pre;animation:scroll 20s linear infinite;z-index:0;}
+@keyframes scroll{from{transform:translateY(0);}to{transform:translateY(-50%);}}
+.container{position:relative;z-index:1;padding:20px;max-width:500px;margin:100px auto;text-align:center;border:1px solid #00ff99;background:rgba(0,0,0,0.7);border-radius:8px;}
+h1{margin-bottom:20px;letter-spacing:3px;}
+input[type="text"]{font-family:monospace;font-size:18px;padding:8px;width:100px;text-align:center;border:1px solid #00ff99;background:black;color:#00ff99;}
+button{font-family:monospace;padding:8px 20px;margin-left:10px;border:1px solid #00ff99;background:black;color:#00ff99;cursor:pointer;}
+button:hover{background:rgba(0,255,153,0.1);}
+.feedback{margin-top:20px;}
+.dead{color:#009966;font-weight:bold;}
+.injured{color:#33cc66;font-weight:bold;}
+.back-btn{display:none;margin-top:20px;padding:10px 25px;border:1px solid #00ff99;background:black;color:#00ff99;cursor:pointer;font-family:monospace;}
+.back-btn:hover{background:rgba(0,255,153,0.1);}
+</style>
+</head>
+<body>
+
+<div class="bg" id="matrix"></div>
+
+<div class="container">
+  <h1>LEVEL 3 — Three Digits</h1>
+  <p>Guess the 3-digit number (0–9)</p>
+  <input type="text" id="guess" maxlength="3" placeholder="e.g. 427"/>
+  <button id="submit">Guess</button>
+
+  <div class="feedback" id="feedback"></div>
+  <button class="back-btn" id="backBtn">Back to Story Mode</button>
+</div>
+
+<script>
+// Generate 3-digit secret number with no repeats
+let digits = [];
+while(digits.length < 3){
+  let n = Math.floor(Math.random()*10);
+  if(!digits.includes(n)) digits.push(n);
+}
+const secretNumber = digits.join("");
+
+const feedbackDiv = document.getElementById("feedback");
+const guessInput = document.getElementById("guess");
+const submitBtn = document.getElementById("submit");
+const backBtn = document.getElementById("backBtn");
+
+submitBtn.onclick = () => {
+  const guess = guessInput.value;
+  if(!/^\d{3}$/.test(guess)){
+    feedbackDiv.innerHTML += `<span class="injured">Enter 3 digits (0–9)</span><br>`;
+    return;
+  }
+
+  // Correct Dead & Injured logic
+  let dead=0, injured=0;
+  const secretArr = secretNumber.split('');
+  const guessArr = guess.split('');
+
+  // Count Dead first
+  for(let i=0;i<3;i++){
+    if(guessArr[i]===secretArr[i]){
+      dead++;
+      guessArr[i]=secretArr[i]=null; // mark used
+    }
+  }
+
+  // Count Injured
+  for(let i=0;i<3;i++){
+    if(guessArr[i]!==null){
+      let idx = secretArr.indexOf(guessArr[i]);
+      if(idx!==-1){
+        injured++;
+        secretArr[idx]=null; // mark used
+      }
+    }
+  }
+
+  feedbackDiv.innerHTML += `Your guess: ${guess} → <span class="dead">${dead}D</span> <span class="injured">${injured}I</span><br>`;
+
+  if(dead===3){
+    feedbackDiv.innerHTML += `<br><strong>Congratulations! You solved Level 3.</strong>`;
+    submitBtn.disabled = true;
+    guessInput.disabled = true;
+    backBtn.style.display = "inline-block";
+
+    let unlockedLevel=parseInt(localStorage.getItem('unlockedLevel'))||2;
+    if(unlockedLevel<4) localStorage.setItem('unlockedLevel',4);
+  }
+
+  guessInput.value="";
+  guessInput.focus();
+};
+
+backBtn.onclick = ()=>{ window.location.href="storymode.html"; };
+</script>
+
+</body>
+</html>
